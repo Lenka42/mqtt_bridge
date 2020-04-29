@@ -45,12 +45,13 @@ def ask_exit(*args):
 async def main(config):
     global CLIENTS
     for client_name in config.sections():
-        client = gmqtt.Client(client_name)
+        client = gmqtt.Client(client_name, clean_session=False, session_expiry_interval=0xFFFFFFFF)
         assign_callbacks_to_client(client)
         client.set_auth_credentials(config[client_name]['username'], config[client_name]['password'])
-        # TODO: make ssl a config parameter
-        await client.connect(config[client_name]['host'], config[client_name]['port'], ssl=True)
-        client.subscribe(config[client_name]['topic'])
+        await client.connect(config[client_name]['host'], config[client_name]['port'],
+                             ssl=config.getboolean(client_name, 'ssl'))
+        if config[client_name]['topic']:
+            client.subscribe(config[client_name]['topic'], qos=1, no_local=True)
         CLIENTS.append(client)
 
     await STOP.wait()
