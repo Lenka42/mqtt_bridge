@@ -133,3 +133,5 @@ dmypy.json
 
 # config
 config.ini
+config.yaml
+config.json

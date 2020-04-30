@@ -1,8 +1,11 @@
+import argparse
 import configparser
 import logging
 import signal
 import asyncio
 import gmqtt
+
+from utils import parse_config
 
 STOP = asyncio.Event()
 
@@ -44,14 +47,14 @@ def ask_exit(*args):
 
 async def main(config):
     global CLIENTS
-    for client_name in config.sections():
+    for client_name in config.keys():
         client = gmqtt.Client(client_name, clean_session=False, session_expiry_interval=0xFFFFFFFF)
         assign_callbacks_to_client(client)
         client.set_auth_credentials(config[client_name]['username'], config[client_name]['password'])
         await client.connect(config[client_name]['host'], config[client_name]['port'],
-                             ssl=config.getboolean(client_name, 'ssl'))
-        if config[client_name]['topic']:
-            client.subscribe(config[client_name]['topic'], qos=1, no_local=True)
+                             ssl=config[client_name]['ssl'])
+        for topic in config[client_name]['topics']:
+            client.subscribe(topic, qos=1, no_local=True)
         CLIENTS.append(client)
 
     await STOP.wait()
@@ -63,10 +66,12 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     logging.basicConfig(level=logging.INFO)
 
-    config = configparser.ConfigParser()
-    config.read('config.ini')
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument('--config', dest='config_path', default='config.yaml')
+    args = arg_parser.parse_args()
+    parsed_config = parse_config(args.config_path)
 
     loop.add_signal_handler(signal.SIGINT, ask_exit)
     loop.add_signal_handler(signal.SIGTERM, ask_exit)
 
-    loop.run_until_complete(main(config))
+    loop.run_until_complete(main(parsed_config))

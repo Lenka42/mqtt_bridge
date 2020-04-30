@@ -1,0 +1,27 @@
+---
+FLESPI:
+  host: "mqtt.flespi.io"
+  port: "8883"
+  username: ""
+  password: ""
+  topics:
+    - "BRIDGE/#"
+  ssl: yes
+RU_FLESPI:
+  host: "ru-mqtt.flespi.io"
+  port: "8883"
+  username: ""
+  password: ""
+  topics:
+    - "REFRIGERATOR/#"
+    - "LIGHT/#"
+  ssl: yes
+LOCAL:
+  host: "127.0.0.1"
+  port: "1883"
+  username: ""
+  password: ""
+  topics:
+    - "zigbee2mqtt/#"
+    - "homeassistant/#"
+  ssl: no
